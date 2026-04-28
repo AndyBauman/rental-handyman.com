@@ -22,7 +22,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
   <link rel="stylesheet" href="styles.css" />
 
   <script type="application/ld+json">
@@ -327,7 +328,7 @@
         <p><a href="mailto:service@rental-handyman.com">service@rental-handyman.com</a></p>
       </div>
       <div>
-        <h4>Services</h4>
+        <p class="footer-heading">Services</p>
         <ul class="footer-links">
           <li><a href="/services/turnover-make-ready.html">Turnover Make-Ready</a></li>
           <li><a href="/services/routine-maintenance.html">Routine Maintenance</a></li>
@@ -342,7 +343,7 @@
         </ul>
       </div>
       <div>
-        <h4>Service Areas</h4>
+        <p class="footer-heading">Service Areas</p>
         <ul class="footer-links">
           <li><a href="/areas/vancouver-wa.html">Vancouver, WA</a></li>
           <li><a href="/areas/camas-wa.html">Camas, WA</a></li>
@@ -354,7 +355,7 @@
         </ul>
       </div>
       <div>
-        <h4>Company</h4>
+        <p class="footer-heading">Company</p>
         <ul class="footer-links">
           <li><a href="/">Home</a></li>
           <li><a href="/#services">Services</a></li>

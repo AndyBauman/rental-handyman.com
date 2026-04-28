@@ -3,8 +3,8 @@
   --surface: #ffffff;
   --ink: #0f172a;
   --muted: #475569;
-  --primary: #0ea5e9;
-  --primary-dark: #0284c7;
+  --primary: #0369a1;
+  --primary-dark: #075985;
   --ring: #bae6fd;
   --border: #e2e8f0;
 }
@@ -343,9 +343,10 @@ summary {
   color: var(--primary);
 }
 
-.site-footer h4 {
+.footer-heading {
   color: #fff;
   font-size: 0.95rem;
+  font-weight: 700;
   margin: 0 0 0.6rem;
 }
 
