@@ -244,7 +244,13 @@
           <p>Tell us what needs to be done and where. We will reply by email with next steps and availability.</p>
           <p><strong>Email:</strong> <a href="mailto:service@rental-handyman.com">service@rental-handyman.com</a></p>
         </div>
-        <form class="quote-form" aria-label="Request quote form" novalidate>
+        <form class="quote-form" aria-label="Request quote form" action="https://formsubmit.co/service@rental-handyman.com" method="POST">
+          <input type="hidden" name="_subject" value="New Quote Request — Rental Handyman" />
+          <input type="hidden" name="_next" value="https://rental-handyman.com/#contact" />
+          <input type="hidden" name="_captcha" value="true" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="text" name="_honey" style="display:none" />
+
           <label for="name">Name</label>
           <input id="name" name="name" type="text" autocomplete="name" required />
 
