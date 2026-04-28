@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Repair Quote Builder | Rental Handyman Clark County</title>
+  <meta name="description" content="Build your own handyman repair quote with Portland-area market rates. Add items to your cart, choose payment timing (now, in person, after repair, or after invoice), and submit for fast email confirmation." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="canonical" href="https://rental-handyman.com/quote-builder.html" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Repair Quote Builder | Rental Handyman Clark County" />
+  <meta property="og:description" content="Add the repairs you need to your cart, see Portland-area market rates, and submit for a fast quote." />
+  <meta property="og:url" content="https://rental-handyman.com/quote-builder.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="logo" href="/" aria-label="Rental Handyman home">Rental Handyman <span>Clark County</span></a>
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="/#services">Services</a></li>
+          <li><a href="/areas/">Areas</a></li>
+          <li><a href="/quote-builder.html" aria-current="page">Quote Builder</a></li>
+          <li><a href="/#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <button type="button" class="btn btn-primary cart-trigger" data-cart-open aria-label="Open quote cart">
+        Quote (<span data-cart-count>0</span>)
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero builder-hero">
+      <div class="container">
+        <p class="eyebrow">Self-Service Quote Tool</p>
+        <h1 id="builder-heading">Homeowner Repair Quote Builder</h1>
+        <p class="lead">Build your repair list like a shopping cart. Pick the items you need, see Portland-area market rate ranges, and submit when you're ready. We confirm scope and final pricing by email — usually same business day.</p>
+
+        <div class="role-toggle" role="tablist" aria-label="I am a">
+          <button type="button" class="role-btn is-active" data-role-btn="homeowner" role="tab">I'm a Homeowner</button>
+          <button type="button" class="role-btn" data-role-btn="pm" role="tab">I'm a Property Manager</button>
+        </div>
+
+        <div class="role-blurb" data-role-show="homeowner">
+          <p>Need a few repairs around your home? Browse the catalog, add what you need, and we'll reply with a tailored quote. No phone calls, no high-pressure sales.</p>
+        </div>
+        <div class="role-blurb" data-role-show="pm" hidden>
+          <p>Managing rentals or HOA properties? Build a punch list across one unit or multiple, choose Net-30 invoicing, and we'll keep everything documented by email.</p>
+        </div>
+
+        <div id="submit-banner" class="submit-banner" hidden>
+          <strong>Quote submitted!</strong> We received your request and will reply by email shortly with confirmed scope, timing, and final pricing.
+        </div>
+      </div>
+    </section>
+
+    <section class="section builder-section">
+      <div class="container builder-grid">
+        <aside class="builder-side" aria-label="Repair categories">
+          <div class="builder-search">
+            <label for="catalog-search" class="visually-hidden">Search repairs</label>
+            <input id="catalog-search" type="search" placeholder="Search repairs…" autocomplete="off" />
+          </div>
+          <p class="side-heading">Categories</p>
+          <ul class="cat-list">
+            <li><button type="button" class="cat-btn is-active" data-cat="all">All Repairs</button></li>
+            <li><button type="button" class="cat-btn" data-cat="drywall">Drywall &amp; Paint</button></li>
+            <li><button type="button" class="cat-btn" data-cat="doors">Doors, Locks &amp; Hardware</button></li>
+            <li><button type="button" class="cat-btn" data-cat="plumbing">Plumbing Fixtures</button></li>
+            <li><button type="button" class="cat-btn" data-cat="electrical">Electrical &amp; Fixtures</button></li>
+            <li><button type="button" class="cat-btn" data-cat="safety">Safety &amp; Compliance</button></li>
+            <li><button type="button" class="cat-btn" data-cat="exterior">Exterior Repairs</button></li>
+            <li><button type="button" class="cat-btn" data-cat="turnover">Turnover Packages</button></li>
+          </ul>
+
+          <div class="rate-note">
+            <p><strong>About these rates</strong></p>
+            <p>Prices are typical Portland / Vancouver WA market ranges for 2026. We confirm final scope and pricing in writing before any work begins. Materials are customer-supplied unless noted.</p>
+          </div>
+        </aside>
+
+        <div class="builder-main">
+          <div id="catalog-grid" class="repair-grid" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="cart-overlay" id="cart-overlay" data-cart-close></div>
+
+    <aside class="cart-drawer" id="cart-drawer" aria-label="Your quote cart">
+      <div class="cart-head">
+        <h2>Your Quote (<span data-cart-count>0</span> items)</h2>
+        <button type="button" class="cart-close" data-cart-close aria-label="Close cart">×</button>
+      </div>
+
+      <div id="cart-body" class="cart-body"></div>
+
+      <div class="cart-totals">
+        <div class="cart-total-row">
+          <span>Estimated total:</span>
+          <strong><span id="cart-total-low">$0</span> – <span id="cart-total-high">$0</span></strong>
+        </div>
+        <p class="cart-disclaimer">Final pricing confirmed in writing after on-site or photo review.</p>
+        <button type="button" class="btn btn-link clear-link" data-cart-clear>Clear all</button>
+      </div>
+
+      <form id="cart-form" class="cart-form" action="https://formsubmit.co/service@rental-handyman.com" method="POST">
+        <input type="hidden" name="_subject" value="New Quote Builder Submission — Rental Handyman" />
+        <input type="hidden" name="_next" value="https://rental-handyman.com/quote-builder.html?submitted=true" />
+        <input type="hidden" name="_captcha" value="true" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="text" name="_honey" style="display:none" />
+        <input type="hidden" name="customer_type" id="hidden-role" />
+        <input type="hidden" name="estimated_total_low" id="hidden-total-low" />
+        <input type="hidden" name="estimated_total_high" id="hidden-total-high" />
+        <input type="hidden" name="quote_summary" id="hidden-summary" />
+
+        <label for="cart-name">Name</label>
+        <input id="cart-name" name="name" type="text" autocomplete="name" required />
+
+        <label for="cart-email">Email</label>
+        <input id="cart-email" name="email" type="email" autocomplete="email" required />
+
+        <label for="cart-phone">Phone (optional)</label>
+        <input id="cart-phone" name="phone" type="tel" autocomplete="tel" />
+
+        <label for="cart-address">Property Address</label>
+        <input id="cart-address" name="address" type="text" autocomplete="street-address" required />
+
+        <label for="cart-notes">Notes / scheduling preferences</label>
+        <textarea id="cart-notes" name="notes" rows="3" placeholder="Anything we should know? (access, urgency, photos available, etc.)"></textarea>
+
+        <fieldset class="payment-options">
+          <legend>Payment preference</legend>
+          <label class="radio-card">
+            <input type="radio" name="payment_preference" value="Pay now (online via Stripe link we email)" required />
+            <span><strong>Pay now</strong><small>We send a secure Stripe payment link with your confirmed quote.</small></span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="payment_preference" value="Pay in person on site" />
+            <span><strong>Pay in person</strong><small>Card, check, or cash on site at job completion.</small></span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="payment_preference" value="Pay after repair (emailed invoice, due on receipt)" />
+            <span><strong>Pay after repair</strong><small>Emailed invoice after completion, due on receipt.</small></span>
+          </label>
+          <label class="radio-card" data-role-show="pm" hidden>
+            <input type="radio" name="payment_preference" value="Net-30 invoice (property manager / business)" />
+            <span><strong>Net-30 invoice</strong><small>For approved property managers and businesses.</small></span>
+          </label>
+        </fieldset>
+
+        <button type="submit" id="cart-submit" class="btn btn-primary btn-block" disabled>
+          Submit Quote Request
+        </button>
+        <p class="cart-fineprint">By submitting, you'll receive a confirmation email with scope review, final pricing, and (if applicable) a Stripe payment link.</p>
+      </form>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <p>&copy; <span id="year"></span> Rental Handyman Clark County. All rights reserved.</p>
+      <p><a href="/">Home</a> | <a href="/#services">Services</a> | <a href="/areas/">Areas</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </div>
+  </footer>
+
+  <script src="/script.js" defer></script>
+  <script src="/catalog.js" defer></script>
+  <script src="/cart.js" defer></script>
+
+  <!-- StatCounter -->
+  <script type="text/javascript">
+  var sc_project=13224814;
+  var sc_invisible=1;
+  var sc_security="5f55a3b2";
+  </script>
+  <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
+  <noscript><div class="statcounter"><a title="Web Analytics Made Easy - Statcounter" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/13224814/0/5f55a3b2/1/" alt="Web Analytics Made Easy - Statcounter" referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+</body>
+</html>
