@@ -535,6 +535,29 @@ summary {
   margin-bottom: 0.35rem;
 }
 
+/* Mobile-only category slider (below homeowner / PM toggle; Instacart-style) */
+.catalog-nav-mobile-bar {
+  display: none;
+}
+
+.catalog-nav-mobile-label {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.catalog-nav-mobile-scroll-wrap {
+  margin: 0 -0.25rem;
+  padding: 0 0.25rem;
+}
+
+.catalog-nav-mobile-scroll-wrap .cat-scroll-list {
+  padding-bottom: 0.15rem;
+}
+
 .role-toggle {
   display: inline-flex;
   background: rgba(255, 255, 255, 0.94);
@@ -1674,6 +1697,22 @@ body.cart-open {
 }
 
 @media (max-width: 880px) {
+  .catalog-nav-mobile-bar {
+    display: block;
+    margin-top: 0.6rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+  }
+
+  .builder-eyebrow-after-role {
+    margin-top: 0.85rem;
+  }
+
+  .catalog-hero .catalog-nav-wrap {
+    display: none;
+  }
+
   .builder-grid {
     grid-template-columns: 1fr;
   }

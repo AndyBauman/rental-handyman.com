@@ -130,11 +130,13 @@
   }
 
   function syncCategoryTabsAria(activeCat) {
-    document.querySelectorAll("#catalog-cat-scroll .cat-pill").forEach((btn) => {
-      const on = btn.dataset.cat === activeCat;
-      btn.classList.toggle("is-active", on);
-      btn.setAttribute("aria-selected", on ? "true" : "false");
-    });
+    document
+      .querySelectorAll("#catalog-cat-scroll .cat-pill, #catalog-cat-scroll-mobile .cat-pill")
+      .forEach((btn) => {
+        const on = btn.dataset.cat === activeCat;
+        btn.classList.toggle("is-active", on);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+      });
   }
 
   const POPULAR_TERMS_HOMEOWNER = [
@@ -174,13 +176,14 @@
   }
 
   function buildCategoryList() {
-    const ul = document.getElementById("catalog-cat-scroll");
-    if (!ul || !window.CATEGORY_LABELS) return;
+    const ulDesktop = document.getElementById("catalog-cat-scroll");
+    const ulMobile = document.getElementById("catalog-cat-scroll-mobile");
+    if (!ulDesktop || !window.CATEGORY_LABELS) return;
     const order =
       state.role === "pm"
         ? window.CATEGORY_ORDER_PM || []
         : window.CATEGORY_ORDER_HOMEOWNER || [];
-    ul.replaceChildren();
+
     const mkBtn = (catKey, labelFull, pillText) => {
       const li = document.createElement("li");
       li.className = "cat-scroll-item";
@@ -195,17 +198,28 @@
       li.appendChild(btn);
       return li;
     };
-    ul.appendChild(
-      mkBtn(
-        "all",
-        state.role === "pm" ? "All PM job types" : "All homeowner job types",
-        categoryPillLabel("all", "")
-      )
-    );
+
+    const rows = [];
+    rows.push({
+      catKey: "all",
+      labelFull: state.role === "pm" ? "All PM job types" : "All homeowner job types",
+      pillText: categoryPillLabel("all", ""),
+    });
     for (const cat of order) {
       const full = window.CATEGORY_LABELS[cat] || cat;
-      ul.appendChild(mkBtn(cat, full, categoryPillLabel(cat, full)));
+      rows.push({ catKey: cat, labelFull: full, pillText: categoryPillLabel(cat, full) });
     }
+
+    function fillUl(ul) {
+      ul.replaceChildren();
+      for (const r of rows) {
+        ul.appendChild(mkBtn(r.catKey, r.labelFull, r.pillText));
+      }
+    }
+
+    fillUl(ulDesktop);
+    if (ulMobile) fillUl(ulMobile);
+
     syncCategoryTabsAria(state.activeCategory);
     const note = document.getElementById("catalog-role-note");
     if (note) {
@@ -704,7 +718,9 @@
         addBundle(ids);
         return;
       }
-      const catBtn = e.target.closest("#catalog-cat-scroll [data-cat]");
+      const catBtn = e.target.closest(
+        "#catalog-cat-scroll [data-cat], #catalog-cat-scroll-mobile [data-cat]"
+      );
       if (catBtn) {
         setCategory(catBtn.dataset.cat);
         return;
