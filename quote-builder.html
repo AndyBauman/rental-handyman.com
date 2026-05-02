@@ -36,7 +36,7 @@
         </ul>
       </nav>
       <button type="button" class="btn btn-primary cart-trigger" data-cart-open aria-label="Open quote cart">
-        Quote (<span data-cart-count>0</span>)
+        Quote · <span data-cart-count>0</span>
       </button>
     </div>
   </header>
@@ -44,13 +44,14 @@
   <main id="main">
     <section class="hero builder-hero">
       <div class="container">
-        <p class="eyebrow">Self-Service Quote Tool</p>
-        <h1 id="builder-heading">Homeowner Repair Quote Builder</h1>
-        <p class="lead">Build your repair list like a shopping cart. Pick the items you need, see Portland-area market rate ranges, and submit when you're ready. We confirm scope and final pricing by email — usually same business day.</p>
-
-        <div class="role-toggle" role="tablist" aria-label="I am a">
-          <button type="button" class="role-btn is-active" data-role-btn="homeowner" role="tab">I'm a Homeowner</button>
-          <button type="button" class="role-btn" data-role-btn="pm" role="tab">I'm a Property Manager</button>
+        <div class="builder-intro">
+          <div class="role-toggle" role="tablist" aria-label="Who is this quote for?">
+            <button type="button" class="role-btn is-active" data-role-btn="homeowner" role="tab" aria-selected="true">Homeowner</button>
+            <button type="button" class="role-btn" data-role-btn="pm" role="tab" aria-selected="false">Property manager</button>
+          </div>
+          <p class="eyebrow builder-eyebrow-after-role">Self-service quote</p>
+          <h1 id="builder-heading">Homeowner Repair Quote Builder</h1>
+          <p class="lead">Add jobs like a cart — see typical Portland/Vancouver rates instantly. Switch tabs above for homeowner vs portfolio workflows; we confirm final scope before any work.</p>
         </div>
 
         <div class="role-blurb" data-role-show="homeowner">
@@ -68,30 +69,37 @@
 
     <section class="section builder-section">
       <div class="container builder-grid">
-        <aside class="builder-side" aria-label="Repair categories">
-          <div class="builder-search">
-            <label for="catalog-search" class="visually-hidden">Search repairs</label>
-            <input id="catalog-search" type="search" placeholder="Search repairs…" autocomplete="off" />
+        <aside class="builder-side" aria-label="Filters and categories">
+          <div class="builder-search-field-wrap">
+            <label for="catalog-search" class="builder-search-label">Search jobs</label>
+            <div class="builder-search-field">
+              <input id="catalog-search" type="search" placeholder="e.g. faucet, turnover, drywall…" autocomplete="off" enterkeyhint="search" />
+              <button type="button" id="catalog-search-clear" class="builder-search-clear" hidden aria-label="Clear search">Clear</button>
+            </div>
           </div>
           <p class="side-heading">Categories</p>
-          <ul class="cat-list">
-            <li><button type="button" class="cat-btn is-active" data-cat="all">All Repairs</button></li>
-            <li><button type="button" class="cat-btn" data-cat="drywall">Drywall &amp; Paint</button></li>
-            <li><button type="button" class="cat-btn" data-cat="doors">Doors, Locks &amp; Hardware</button></li>
-            <li><button type="button" class="cat-btn" data-cat="plumbing">Plumbing Fixtures</button></li>
-            <li><button type="button" class="cat-btn" data-cat="electrical">Electrical &amp; Fixtures</button></li>
-            <li><button type="button" class="cat-btn" data-cat="safety">Safety &amp; Compliance</button></li>
-            <li><button type="button" class="cat-btn" data-cat="exterior">Exterior Repairs</button></li>
-            <li><button type="button" class="cat-btn" data-cat="turnover">Turnover Packages</button></li>
-          </ul>
+          <p id="catalog-role-note" class="catalog-role-note"></p>
+          <ul class="cat-list" id="catalog-cat-list"></ul>
 
-          <div class="rate-note">
-            <p><strong>About these rates</strong></p>
-            <p>Prices are typical Portland / Vancouver WA market ranges for 2026. We confirm final scope and pricing in writing before any work begins. Materials are customer-supplied unless noted.</p>
-          </div>
+          <details class="rate-note-details">
+            <summary>About these rate ranges</summary>
+            <p>Figures are typical Clark County / Portland metro handyman ranges for 2026 — not a binding bid. Materials are usually customer-supplied unless noted. We put final pricing in writing after scope review.</p>
+          </details>
         </aside>
 
         <div class="builder-main">
+          <header class="catalog-toolbar">
+            <p id="catalog-results-count" class="catalog-results-count" aria-live="polite"></p>
+          </header>
+
+          <section id="catalog-quick-starts" class="catalog-quick-starts" aria-labelledby="quick-starts-heading" hidden>
+            <div class="quick-starts-head">
+              <h2 id="quick-starts-heading" class="quick-starts-title">Quick starts</h2>
+              <p class="quick-starts-sub">Curated bundles — one tap adds multiple lines (adjust quantities in your quote).</p>
+            </div>
+            <div id="catalog-quick-starts-inner" class="quick-starts-scroll"></div>
+          </section>
+
           <div id="catalog-grid" class="repair-grid" aria-live="polite"></div>
         </div>
       </div>
@@ -101,9 +109,12 @@
 
     <aside class="cart-drawer" id="cart-drawer" aria-label="Your quote cart">
       <div class="cart-head">
-        <h2>Your Quote (<span data-cart-count>0</span> items)</h2>
-        <button type="button" class="cart-close" data-cart-close aria-label="Close cart">×</button>
+        <h2>Your quote</h2>
+        <button type="button" class="cart-close" data-cart-close aria-label="Close quote">
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
+      <p class="cart-head-meta"><span data-cart-count>0</span> items · Estimated <strong><span id="cart-total-low-inline">$0</span> – <span id="cart-total-high-inline">$0</span></strong></p>
 
       <div id="cart-body" class="cart-body"></div>
 
@@ -162,12 +173,19 @@
           </label>
         </fieldset>
 
-        <button type="submit" id="cart-submit" class="btn btn-primary btn-block" disabled>
-          Submit Quote Request
+        <button type="submit" id="cart-submit" class="btn btn-primary btn-block btn-submit-quote" disabled>
+          Send quote request
         </button>
         <p class="cart-fineprint">By submitting, you'll receive a confirmation email with scope review, final pricing, and (if applicable) a Stripe payment link.</p>
       </form>
     </aside>
+
+    <div id="mobile-quote-bar" class="mobile-quote-bar" hidden>
+      <button type="button" class="mobile-quote-bar-btn" data-cart-open>
+        <span class="mobile-quote-bar-label">View quote</span>
+        <span class="mobile-quote-bar-meta"><span data-cart-count>0</span> items · <span class="mobile-quote-bar-range"><span id="mobile-total-low">$0</span> – <span id="mobile-total-high">$0</span></span></span>
+      </button>
+    </div>
   </main>
 
   <footer class="site-footer">

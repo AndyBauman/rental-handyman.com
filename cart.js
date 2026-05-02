@@ -21,12 +21,77 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
   }
 
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function showToast(message) {
+    let el = document.getElementById("quote-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "quote-toast";
+      el.className = "quote-toast";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-live", "polite");
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.classList.add("is-visible");
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => el.classList.remove("is-visible"), 2800);
+  }
+
+  function pulseCartTrigger() {
+    document.querySelectorAll(".cart-trigger").forEach((btn) => {
+      btn.classList.remove("cart-trigger-pulse");
+      void btn.offsetWidth;
+      btn.classList.add("cart-trigger-pulse");
+    });
+  }
+
+  function syncMobileQuoteBar() {
+    const mobBar = document.getElementById("mobile-quote-bar");
+    const drawer = document.getElementById("cart-drawer");
+    if (!mobBar) return;
+    const t = totals();
+    const drawerOpen = drawer && drawer.classList.contains("is-open");
+    const narrow = window.matchMedia("(max-width: 880px)").matches;
+    const show = narrow && t.count > 0 && !drawerOpen;
+    mobBar.hidden = !show;
+    document.body.classList.toggle("quote-mobile-bar-active", show);
+  }
+
   function fmt(n) {
-    return "$" + n.toLocaleString("en-US");
+    const x = Number(n);
+    const fractional = Math.abs(x % 1) > 1e-9;
+    return (
+      "$" +
+      x.toLocaleString("en-US", {
+        minimumFractionDigits: fractional ? 2 : 0,
+        maximumFractionDigits: fractional ? 2 : 0,
+      })
+    );
   }
 
   function getItem(id) {
-    return window.REPAIR_CATALOG.find((i) => i.id === id);
+    const i = window.REPAIR_CATALOG.find((x) => x.id === id);
+    if (!i || i.audience !== state.role) return undefined;
+    return i;
+  }
+
+  function pruneCartForRole() {
+    let changed = false;
+    for (const id of Object.keys(state.items)) {
+      const it = window.REPAIR_CATALOG.find((x) => x.id === id);
+      if (!it || it.audience !== state.role) {
+        delete state.items[id];
+        changed = true;
+      }
+    }
+    if (changed) save();
   }
 
   function totals() {
@@ -42,15 +107,95 @@
     return { low, high, count };
   }
 
+  function buildCategoryList() {
+    const ul = document.getElementById("catalog-cat-list");
+    if (!ul || !window.CATEGORY_LABELS) return;
+    const order =
+      state.role === "pm"
+        ? window.CATEGORY_ORDER_PM || []
+        : window.CATEGORY_ORDER_HOMEOWNER || [];
+    ul.replaceChildren();
+    const allLi = document.createElement("li");
+    const allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "cat-btn";
+    allBtn.dataset.cat = "all";
+    allBtn.textContent =
+      state.role === "pm" ? "All PM job types" : "All homeowner job types";
+    allLi.appendChild(allBtn);
+    ul.appendChild(allLi);
+    for (const cat of order) {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cat-btn";
+      btn.dataset.cat = cat;
+      btn.textContent = window.CATEGORY_LABELS[cat] || cat;
+      li.appendChild(btn);
+      ul.appendChild(li);
+    }
+    const note = document.getElementById("catalog-role-note");
+    if (note) {
+      note.textContent =
+        state.role === "pm"
+          ? "Turnovers, compliance, portfolios — Portland/Vancouver market ranges."
+          : "Owner-occupied scopes — Portland/Vancouver market ranges.";
+    }
+  }
+
+  function renderQuickStarts() {
+    const section = document.getElementById("catalog-quick-starts");
+    const inner = document.getElementById("catalog-quick-starts-inner");
+    if (!section || !inner || !window.QUOTE_QUICK_STARTS) return;
+
+    const eligible =
+      state.activeCategory === "all" &&
+      !state.search.trim() &&
+      window.QUOTE_QUICK_STARTS.some((b) => b.audience === state.role);
+
+    if (!eligible) {
+      section.hidden = true;
+      inner.innerHTML = "";
+      return;
+    }
+
+    section.hidden = false;
+    const bundles = window.QUOTE_QUICK_STARTS.filter((b) => b.audience === state.role);
+    inner.innerHTML = bundles
+      .map((b) => {
+        const badge = b.badge
+          ? `<span class="bundle-badge">${escapeHtml(b.badge)}</span>`
+          : "";
+        const idsAttr = escapeHtml(b.addIds.join(","));
+        return `
+        <button type="button" class="bundle-card" data-bundle="${idsAttr}">
+          ${badge}
+          <span class="bundle-card-title">${escapeHtml(b.title)}</span>
+          <span class="bundle-card-sub">${escapeHtml(b.subtitle)}</span>
+          <span class="bundle-card-cta" aria-hidden="true">Add bundle</span>
+        </button>`;
+      })
+      .join("");
+  }
+
+  function updateSearchChrome() {
+    const clearBtn = document.getElementById("catalog-search-clear");
+    if (clearBtn) clearBtn.hidden = !state.search.trim();
+  }
+
   function setRole(role) {
     state.role = role;
     localStorage.setItem(ROLE_KEY, role);
     document.querySelectorAll("[data-role-btn]").forEach((b) => {
-      b.classList.toggle("is-active", b.dataset.roleBtn === role);
+      const on = b.dataset.roleBtn === role;
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
     });
     document.querySelectorAll("[data-role-show]").forEach((el) => {
       el.hidden = el.dataset.roleShow !== role;
     });
+    buildCategoryList();
+    pruneCartForRole();
     const heading = document.getElementById("builder-heading");
     if (heading) {
       heading.textContent =
@@ -58,50 +203,76 @@
           ? "Property Manager Repair Quote Builder"
           : "Homeowner Repair Quote Builder";
     }
+    setCategory("all");
+    renderCart();
   }
 
   function setCategory(cat) {
     state.activeCategory = cat;
-    document.querySelectorAll("[data-cat]").forEach((b) => {
+    document.querySelectorAll(".builder-side [data-cat]").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.cat === cat);
     });
     renderCatalog();
   }
 
   function renderCatalog() {
+    renderQuickStarts();
+
     const grid = document.getElementById("catalog-grid");
     if (!grid) return;
+    updateSearchChrome();
     const q = state.search.trim().toLowerCase();
     const items = window.REPAIR_CATALOG.filter((it) => {
+      if (it.audience !== state.role) return false;
       if (state.activeCategory !== "all" && it.category !== state.activeCategory) return false;
       if (q && !(it.name.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q))) return false;
       return true;
     });
 
+    const meta = document.getElementById("catalog-results-count");
+    if (meta) {
+      const noun = items.length === 1 ? "job type" : "job types";
+      const scopeLabel =
+        state.activeCategory === "all"
+          ? "all categories"
+          : window.CATEGORY_LABELS[state.activeCategory] || state.activeCategory;
+      meta.textContent =
+        items.length === 0
+          ? `No matches · ${scopeLabel}`
+          : `Showing ${items.length} ${noun} · ${scopeLabel}`;
+    }
+
     grid.innerHTML = items
       .map((it) => {
         const qty = state.items[it.id] || 0;
         const inCart = qty > 0;
+        const catLabel = escapeHtml(window.CATEGORY_LABELS[it.category] || it.category);
+        const title = escapeHtml(it.name);
+        const desc = escapeHtml(it.desc);
         return `
-          <article class="repair-card${inCart ? " in-cart" : ""}" data-id="${it.id}">
+          <article class="repair-card${inCart ? " in-cart" : ""}" data-id="${escapeHtml(it.id)}">
             <div class="repair-head">
-              <span class="repair-cat">${window.CATEGORY_LABELS[it.category] || it.category}</span>
-              <span class="repair-price">${fmt(it.low)}&ndash;${fmt(it.high)} <small>${it.unit}</small></span>
+              <span class="repair-cat">${catLabel}</span>
+              <div class="repair-price-block">
+                <span class="repair-price-label">Typical range</span>
+                <span class="repair-price">${fmt(it.low)}–${fmt(it.high)}</span>
+                <span class="repair-price-unit">${escapeHtml(it.unit)}</span>
+              </div>
             </div>
-            <h3>${it.name}</h3>
-            <p>${it.desc}</p>
+            <h3>${title}</h3>
+            <p>${desc}</p>
             <div class="repair-actions">
               ${
                 inCart
                   ? `
-                <div class="qty-stepper" role="group" aria-label="Quantity">
-                  <button type="button" class="qty-btn" data-qty="-1" data-id="${it.id}" aria-label="Decrease">−</button>
-                  <input type="number" min="0" value="${qty}" class="qty-input" data-id="${it.id}" aria-label="Quantity" />
-                  <button type="button" class="qty-btn" data-qty="1" data-id="${it.id}" aria-label="Increase">+</button>
+                <div class="qty-stepper" role="group" aria-label="Adjust quantity">
+                  <button type="button" class="qty-btn" data-qty="-1" data-id="${escapeHtml(it.id)}" aria-label="Decrease quantity">−</button>
+                  <input type="number" min="0" value="${qty}" class="qty-input" data-id="${escapeHtml(it.id)}" aria-label="Quantity" />
+                  <button type="button" class="qty-btn" data-qty="1" data-id="${escapeHtml(it.id)}" aria-label="Increase quantity">+</button>
                 </div>
-                <button type="button" class="btn btn-link remove-btn" data-remove="${it.id}">Remove</button>
+                <button type="button" class="btn btn-link remove-btn" data-remove="${escapeHtml(it.id)}">Remove</button>
               `
-                  : `<button type="button" class="btn btn-add" data-add="${it.id}">Add to Quote</button>`
+                  : `<button type="button" class="btn btn-add" data-add="${escapeHtml(it.id)}">Add</button>`
               }
             </div>
           </article>`;
@@ -109,7 +280,11 @@
       .join("");
 
     if (items.length === 0) {
-      grid.innerHTML = `<p class="empty-state">No repairs match. Try a different category or search.</p>`;
+      grid.innerHTML = `
+        <div class="empty-state" role="status">
+          <p class="empty-state-title">Nothing matched</p>
+          <p class="empty-state-hint">Try clearing search, choose “All … job types”, or pick another category.</p>
+        </div>`;
     }
   }
 
@@ -119,8 +294,20 @@
     document.querySelectorAll("[data-cart-count]").forEach((el) => {
       el.textContent = String(t.count);
     });
-    document.getElementById("cart-total-low").textContent = fmt(t.low);
-    document.getElementById("cart-total-high").textContent = fmt(t.high);
+    const lowEl = document.getElementById("cart-total-low");
+    const highEl = document.getElementById("cart-total-high");
+    if (lowEl) lowEl.textContent = fmt(t.low);
+    if (highEl) highEl.textContent = fmt(t.high);
+    const lowIn = document.getElementById("cart-total-low-inline");
+    const highIn = document.getElementById("cart-total-high-inline");
+    if (lowIn) lowIn.textContent = fmt(t.low);
+    if (highIn) highIn.textContent = fmt(t.high);
+    const mLow = document.getElementById("mobile-total-low");
+    const mHigh = document.getElementById("mobile-total-high");
+    if (mLow) mLow.textContent = fmt(t.low);
+    if (mHigh) mHigh.textContent = fmt(t.high);
+
+    syncMobileQuoteBar();
 
     const submitBtn = document.getElementById("cart-submit");
     if (submitBtn) submitBtn.disabled = t.count === 0;
@@ -128,7 +315,7 @@
     if (!body) return;
 
     if (t.count === 0) {
-      body.innerHTML = `<p class="cart-empty">Your quote is empty. Add repairs from the catalog to get started.</p>`;
+      body.innerHTML = `<p class="cart-empty">Your quote is empty — add jobs from the catalog or a quick-start bundle.</p>`;
       return;
     }
 
@@ -138,16 +325,16 @@
         const it = getItem(id);
         if (!it || qty < 1) return "";
         return `
-          <li class="cart-row" data-id="${id}">
+          <li class="cart-row" data-id="${escapeHtml(id)}">
             <div class="cart-row-main">
-              <p class="cart-row-name">${it.name}</p>
+              <p class="cart-row-name">${escapeHtml(it.name)}</p>
               <p class="cart-row-meta">${fmt(it.low * qty)} – ${fmt(it.high * qty)}</p>
             </div>
             <div class="cart-row-controls">
-              <button type="button" class="qty-btn small" data-qty="-1" data-id="${id}" aria-label="Decrease">−</button>
-              <span class="qty-display" data-qty-display="${id}">${qty}</span>
-              <button type="button" class="qty-btn small" data-qty="1" data-id="${id}" aria-label="Increase">+</button>
-              <button type="button" class="cart-remove" data-remove="${id}" aria-label="Remove">×</button>
+              <button type="button" class="qty-btn small" data-qty="-1" data-id="${escapeHtml(id)}" aria-label="Decrease quantity">−</button>
+              <span class="qty-display" data-qty-display="${escapeHtml(id)}">${qty}</span>
+              <button type="button" class="qty-btn small" data-qty="1" data-id="${escapeHtml(id)}" aria-label="Increase quantity">+</button>
+              <button type="button" class="cart-remove" data-remove="${escapeHtml(id)}" aria-label="Remove line">×</button>
             </div>
           </li>`;
       })
@@ -155,8 +342,27 @@
     body.innerHTML = `<ul class="cart-list">${rows}</ul>`;
   }
 
+  function addBundle(ids) {
+    let added = 0;
+    for (const raw of ids) {
+      const id = raw.trim();
+      if (!id) continue;
+      const it = window.REPAIR_CATALOG.find((x) => x.id === id);
+      if (!it || it.audience !== state.role) continue;
+      state.items[id] = (state.items[id] || 0) + 1;
+      added++;
+    }
+    if (added === 0) return;
+    save();
+    renderCart();
+    renderCatalog();
+    showToast(`Bundle added · ${added} line ${added === 1 ? "item" : "items"}`);
+    pulseCartTrigger();
+  }
+
   function addItem(id, delta) {
     const cur = state.items[id] || 0;
+    const appearing = cur === 0 && delta > 0;
     const next = Math.max(0, cur + delta);
     if (next === 0) {
       delete state.items[id];
@@ -166,6 +372,10 @@
     save();
     renderCart();
     renderCatalog();
+    if (appearing && next > 0) {
+      showToast("Added to quote");
+      pulseCartTrigger();
+    }
   }
 
   function setQty(id, qty) {
@@ -212,6 +422,7 @@
     drawer.classList.toggle("is-open", open);
     if (overlay) overlay.classList.toggle("is-visible", open);
     document.body.classList.toggle("cart-open", open);
+    syncMobileQuoteBar();
   }
 
   function clearCart() {
@@ -225,14 +436,10 @@
     if (!document.getElementById("catalog-grid")) return;
 
     setRole(state.role);
-    setCategory("all");
     renderCart();
 
     document.querySelectorAll("[data-role-btn]").forEach((b) => {
       b.addEventListener("click", () => setRole(b.dataset.roleBtn));
-    });
-    document.querySelectorAll("[data-cat]").forEach((b) => {
-      b.addEventListener("click", () => setCategory(b.dataset.cat));
     });
 
     const search = document.getElementById("catalog-search");
@@ -243,7 +450,35 @@
       });
     }
 
+    const searchClear = document.getElementById("catalog-search-clear");
+    if (searchClear) {
+      searchClear.addEventListener("click", () => {
+        state.search = "";
+        if (search) search.value = "";
+        renderCatalog();
+      });
+    }
+
+    window.addEventListener("resize", syncMobileQuoteBar);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const drawer = document.getElementById("cart-drawer");
+      if (drawer && drawer.classList.contains("is-open")) openCart(false);
+    });
+
     document.addEventListener("click", (e) => {
+      const bundleBtn = e.target.closest("[data-bundle]");
+      if (bundleBtn && bundleBtn.closest("#catalog-quick-starts-inner")) {
+        const ids = bundleBtn.dataset.bundle.split(",").map((x) => x.trim()).filter(Boolean);
+        addBundle(ids);
+        return;
+      }
+      const catBtn = e.target.closest(".builder-side [data-cat]");
+      if (catBtn) {
+        setCategory(catBtn.dataset.cat);
+        return;
+      }
       const addBtn = e.target.closest("[data-add]");
       if (addBtn) {
         addItem(addBtn.dataset.add, 1);
