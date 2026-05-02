@@ -137,6 +137,8 @@
         <input type="hidden" name="estimated_total_low" id="hidden-total-low" />
         <input type="hidden" name="estimated_total_high" id="hidden-total-high" />
         <input type="hidden" name="quote_summary" id="hidden-summary" />
+        <input type="hidden" name="quote_line_items_json" id="hidden-line-items-json" value="" />
+        <input type="hidden" name="crm_payload_json" id="hidden-crm-payload" value="" />
 
         <label for="cart-name">Name</label>
         <input id="cart-name" name="name" type="text" autocomplete="name" required />
@@ -151,7 +153,46 @@
         <input id="cart-address" name="address" type="text" autocomplete="street-address" required />
 
         <label for="cart-notes">Notes / scheduling preferences</label>
-        <textarea id="cart-notes" name="notes" rows="3" placeholder="Anything we should know? (access, urgency, photos available, etc.)"></textarea>
+        <textarea id="cart-notes" name="notes" rows="3" placeholder="Anything we should know? (access, gate codes, parking, photos link, pets, etc.)"></textarea>
+
+        <fieldset class="schedule-fieldset">
+          <legend>Best times for service <span class="req-mark">*</span></legend>
+          <p class="fieldset-hint">Pick every window that usually works — we&apos;ll confirm one appointment after scope review.</p>
+          <div class="timeframe-grid" id="timeframe-grid">
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Weekday mornings (8–12)" /> Weekday mornings <span class="sub">8–12</span></label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Weekday afternoons (12–5)" /> Weekday afternoons <span class="sub">12–5</span></label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Weekday early evenings (5–8)" /> Early evenings <span class="sub">5–8</span></label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Saturday morning" /> Saturday morning</label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Saturday afternoon" /> Saturday afternoon</label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Sunday (flex)" /> Sunday <span class="sub">flex</span></label>
+            <label class="checkbox-tile"><input type="checkbox" name="timeframe_pref" value="Any weekday — flexible" /> Any weekday · flexible</label>
+          </div>
+          <input type="hidden" name="timeframe_preferences" id="hidden-timeframes" value="" />
+          <label class="checkbox-line weekend-opt">
+            <input type="checkbox" id="cart-ok-weekend" />
+            <span>I understand <strong>Saturday–Sunday</strong> bookings may use <strong>2×</strong> typical labor rates.</span>
+          </label>
+          <label class="checkbox-line holiday-opt">
+            <input type="checkbox" id="cart-ok-holiday" />
+            <span>If service lands on a recognized <strong>holiday</strong>, <strong>3×</strong> typical labor rates may apply.</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="emergency-fieldset">
+          <legend>Urgency</legend>
+          <label class="checkbox-line emergency-toggle">
+            <input type="checkbox" id="cart-emergency" />
+            <span><strong>Emergency / ASAP dispatch</strong> — burst pipe, no heat in freezing temps, unsafe electrical, lockout, etc.</span>
+          </label>
+          <p class="fee-disclosure" id="emergency-fee-copy">
+            Emergency requests include <strong>prioritized scheduling</strong> and may add a <strong>dispatch premium</strong> on top of estimated ranges.
+            Weekend work uses <strong>2×</strong> typical labor; holidays use <strong>3×</strong>. You&apos;ll get written confirmation before work starts.
+          </p>
+          <input type="hidden" name="pricing_rules_ack" id="hidden-pricing-ack" value="standard" />
+          <input type="hidden" name="is_emergency" id="hidden-is-emergency" value="no" />
+        </fieldset>
+
+        <textarea name="schedule_summary" id="hidden-schedule-summary" class="quote-email-schedule-block" rows="8" cols="80" aria-label="Schedule summary for email"></textarea>
 
         <fieldset class="payment-options">
           <legend>Payment preference</legend>
@@ -195,6 +236,7 @@
     </div>
   </footer>
 
+  <script src="/quote-hook.js"></script>
   <script src="/script.js" defer></script>
   <script src="/catalog.js" defer></script>
   <script src="/cart.js" defer></script>

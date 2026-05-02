@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Tasks — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a href="index.html">Dashboard</a>
+          <a href="pipeline.html">Pipeline</a>
+          <a href="leads.html">Leads</a>
+          <a class="is-active" href="tasks.html">Tasks</a>
+          <a href="templates.html">Templates</a>
+          <a href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Tasks</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+
+        <section class="adm-task-section adm-card">
+          <h3 style="color: var(--adm-danger)">⚠ Emergency dispatch</h3>
+          <div id="adm-task-emergency"></div>
+        </section>
+        <section class="adm-task-section adm-card">
+          <h3 style="color: var(--adm-warn)">Today — respond / schedule</h3>
+          <div id="adm-task-today"></div>
+        </section>
+        <section class="adm-task-section adm-card">
+          <h3 style="color: var(--adm-accent)">Upcoming follow-ups</h3>
+          <div id="adm-task-upcoming"></div>
+        </section>
+        <p style="color: var(--adm-muted); font-size: 0.88rem">Derived from leads (local CRM). Wire Zapier/Make later for calendar sync.</p>
+      </main>
+    </div>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/crm-storage.js"></script>
+    <script>
+      function cardHtml(l, note) {
+        return (
+          '<div class="adm-pcard">' +
+          "<strong>" +
+          (l.contactName || "Lead") +
+          "</strong>" +
+          '<div class="meta">' +
+          (l.serviceAddress || "") +
+          "</div>" +
+          '<div class="meta">' +
+          note +
+          "</div>" +
+          '<div class="meta" style="margin-top:0.35rem"><a href="leads.html">Open leads →</a></div>' +
+          "</div>"
+        );
+      }
+
+      function render() {
+        var leads = RH_CRM.getLeads();
+        var emerg = leads.filter(function (l) {
+          return l.isEmergency && (l.stage === "new_lead" || l.stage === "contacted");
+        });
+        document.getElementById("adm-task-emergency").innerHTML =
+          emerg.length === 0
+            ? '<p style="margin:0;color:var(--adm-muted)">No emergency tickets in early stages.</p>'
+            : emerg
+                .map(function (l) {
+                  return cardHtml(l, "Dispatch ASAP · confirm premium / scope · " + (l.contactPhone || "no phone"));
+                })
+                .join("");
+
+        var today = leads.filter(function (l) {
+          return !l.isEmergency && (l.stage === "new_lead" || l.stage === "contacted");
+        });
+        document.getElementById("adm-task-today").innerHTML =
+          today.length === 0
+            ? '<p style="margin:0;color:var(--adm-muted)">No standard new/contacted leads.</p>'
+            : today
+                .map(function (l) {
+                  return cardHtml(l, "Send acknowledgment · propose windows: " + (l.timeframePreferences || []).join("; "));
+                })
+                .join("");
+
+        var up = leads.filter(function (l) {
+          return l.stage === "quoted" || l.stage === "scheduled";
+        });
+        document.getElementById("adm-task-upcoming").innerHTML =
+          up.length === 0
+            ? '<p style="margin:0;color:var(--adm-muted)">Nothing in quoted / scheduled.</p>'
+            : up
+                .map(function (l) {
+                  return cardHtml(l, "Stage: " + (l.stage || "") + " · Hold dates aligned with customer windows.");
+                })
+                .join("");
+      }
+
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+
+      render();
+    </script>
+  </body>
+</html>

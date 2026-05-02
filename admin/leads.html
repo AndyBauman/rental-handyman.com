@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Leads — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a href="index.html">Dashboard</a>
+          <a href="pipeline.html">Pipeline</a>
+          <a class="is-active" href="leads.html">Leads</a>
+          <a href="tasks.html">Tasks</a>
+          <a href="templates.html">Templates</a>
+          <a href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Leads</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+        <div class="adm-card adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Projects</th>
+                <th>Estimate</th>
+                <th>Score</th>
+                <th>Stage</th>
+                <th>Windows</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="adm-leads-body"></tbody>
+          </table>
+          <p id="adm-leads-empty" style="display: none; color: var(--adm-muted); margin: 0.5rem 0 0">
+            No leads — import JSON from the quote builder (<a href="import.html">Import</a>) or submit a quote on the site with webhook automation later.
+          </p>
+        </div>
+      </main>
+    </div>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/crm-storage.js"></script>
+    <script>
+      function fmtMoney(n) {
+        if (n == null || isNaN(n)) return "—";
+        return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      var STAGES = ["new_lead", "contacted", "quoted", "scheduled", "in_progress", "completed", "lost"];
+
+      function render() {
+        var leads = RH_CRM.getLeads();
+        var tbody = document.getElementById("adm-leads-body");
+        var empty = document.getElementById("adm-leads-empty");
+        tbody.innerHTML = "";
+        if (!leads.length) {
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+
+        leads.forEach(function (l) {
+          var tr = document.createElement("tr");
+          var projects = (l.lineItems || [])
+            .map(function (x) {
+              return x.qty + "× " + x.name;
+            })
+            .join("; ");
+          var windows = (l.timeframePreferences || []).join("; ") || (l.isEmergency ? "Emergency — ASAP" : "—");
+          var flags =
+            (l.isEmergency ? '<span class="adm-pill adm-pill-emergency">Emergency</span> ' : "") +
+            (l.okWeekendRates ? '<span class="adm-pill" style="background:rgba(251,191,36,.15);color:var(--adm-warn)">Weekend OK</span> ' : "") +
+            (l.okHolidayRates ? '<span class="adm-pill" style="background:rgba(52,211,153,.12);color:var(--adm-success)">Holiday OK</span>' : "");
+
+          var sel = document.createElement("select");
+          sel.className = "adm-btn";
+          sel.style.padding = "0.28rem 0.45rem";
+          STAGES.forEach(function (s) {
+            var o = document.createElement("option");
+            o.value = s;
+            o.textContent = s.replace(/_/g, " ");
+            if (s === (l.stage || "new_lead")) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener("change", function () {
+            RH_CRM.updateStage(l.id, sel.value);
+          });
+
+          var clientTd = document.createElement("td");
+          clientTd.innerHTML =
+            "<strong>" +
+            (l.contactName || "(Unknown)") +
+            "</strong><div class=\"meta\">" +
+            (l.contactPhone || "") +
+            "</div><div class=\"meta\">" +
+            (l.contactEmail || "") +
+            "</div><div class=\"meta\">" +
+            (l.serviceAddress || "") +
+            "</div><div style=\"margin-top:0.35rem\">" +
+            flags +
+            "</div>";
+
+          var projTd = document.createElement("td");
+          projTd.textContent = projects || "—";
+          projTd.style.fontSize = "0.82rem";
+          projTd.style.color = "var(--adm-muted)";
+
+          var estTd = document.createElement("td");
+          estTd.innerHTML = "<strong>" + fmtMoney(l.estimateLow) + "–" + fmtMoney(l.estimateHigh) + "</strong>";
+
+          var scoreTd = document.createElement("td");
+          scoreTd.textContent = l.urgencyScore != null ? String(l.urgencyScore) : "—";
+
+          var stageTd = document.createElement("td");
+          stageTd.appendChild(sel);
+
+          var winTd = document.createElement("td");
+          winTd.textContent = windows;
+          winTd.style.fontSize = "0.78rem";
+          winTd.style.maxWidth = "200px";
+
+          var delTd = document.createElement("td");
+          var del = document.createElement("button");
+          del.type = "button";
+          del.className = "adm-btn adm-btn-danger";
+          del.textContent = "Delete";
+          del.addEventListener("click", function () {
+            if (confirm("Delete this lead from CRM storage?")) {
+              RH_CRM.deleteLead(l.id);
+              render();
+            }
+          });
+          delTd.appendChild(del);
+
+          tr.appendChild(clientTd);
+          tr.appendChild(projTd);
+          tr.appendChild(estTd);
+          tr.appendChild(scoreTd);
+          tr.appendChild(stageTd);
+          tr.appendChild(winTd);
+          tr.appendChild(delTd);
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+
+      render();
+    </script>
+  </body>
+</html>

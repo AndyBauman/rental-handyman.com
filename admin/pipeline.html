@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Pipeline — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a href="index.html">Dashboard</a>
+          <a class="is-active" href="pipeline.html">Pipeline</a>
+          <a href="leads.html">Leads</a>
+          <a href="tasks.html">Tasks</a>
+          <a href="templates.html">Templates</a>
+          <a href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Pipeline</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+        <div class="adm-pipeline" id="adm-pipeline"></div>
+      </main>
+    </div>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/crm-storage.js"></script>
+    <script>
+      var COLS = [
+        { id: "new_lead", title: "New lead" },
+        { id: "contacted", title: "Contacted" },
+        { id: "quoted", title: "Quoted" },
+        { id: "scheduled", title: "Scheduled" },
+        { id: "in_progress", title: "In progress" },
+        { id: "completed", title: "Completed" },
+      ];
+
+      function fmtMoney(n) {
+        if (n == null || isNaN(n)) return "—";
+        return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function render() {
+        var leads = RH_CRM.getLeads();
+        var root = document.getElementById("adm-pipeline");
+        root.innerHTML = "";
+
+        COLS.forEach(function (col) {
+          var wrap = document.createElement("div");
+          wrap.className = "adm-col";
+          var subset = leads.filter(function (l) {
+            return (l.stage || "new_lead") === col.id;
+          });
+          wrap.innerHTML = "<h3>" + col.title + " (" + subset.length + ")</h3>";
+
+          subset.forEach(function (l) {
+            var card = document.createElement("div");
+            card.className = "adm-pcard";
+            if (l.isEmergency) {
+              card.style.borderColor = "rgba(248,113,113,0.65)";
+              card.style.boxShadow = "0 0 0 1px rgba(248,113,113,0.25)";
+            }
+            var proj = (l.lineItems || [])
+              .slice(0, 3)
+              .map(function (x) {
+                return x.name;
+              })
+              .join(", ");
+            card.innerHTML =
+              "<strong>" +
+              (l.contactName || "Lead") +
+              "</strong>" +
+              '<div class="meta">' +
+              (l.serviceAddress || "") +
+              "</div>" +
+              '<div class="meta">' +
+              proj +
+              "</div>" +
+              '<div class="meta" style="margin-top:0.35rem;font-weight:700;color:var(--adm-text)">' +
+              fmtMoney(l.estimateLow) +
+              " – " +
+              fmtMoney(l.estimateHigh) +
+              "</div>" +
+              '<div class="meta">' +
+              ((l.timeframePreferences || []).join(" · ") || (l.isEmergency ? "Emergency window" : "—")) +
+              "</div>";
+
+            var nav = document.createElement("div");
+            nav.style.marginTop = "0.45rem";
+            nav.style.display = "flex";
+            nav.style.flexWrap = "wrap";
+            nav.style.gap = "0.35rem";
+
+            var idx = COLS.findIndex(function (c) {
+              return c.id === col.id;
+            });
+            if (idx > 0) {
+              var prev = document.createElement("button");
+              prev.type = "button";
+              prev.className = "adm-btn";
+              prev.textContent = "←";
+              prev.title = "Move back";
+              prev.addEventListener("click", function () {
+                RH_CRM.updateStage(l.id, COLS[idx - 1].id);
+                render();
+              });
+              nav.appendChild(prev);
+            }
+            if (idx < COLS.length - 1) {
+              var next = document.createElement("button");
+              next.type = "button";
+              next.className = "adm-btn";
+              next.textContent = "→";
+              next.title = "Advance";
+              next.addEventListener("click", function () {
+                RH_CRM.updateStage(l.id, COLS[idx + 1].id);
+                render();
+              });
+              nav.appendChild(next);
+            }
+            card.appendChild(nav);
+            wrap.appendChild(card);
+          });
+
+          root.appendChild(wrap);
+        });
+      }
+
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+
+      render();
+    </script>
+  </body>
+</html>

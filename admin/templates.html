@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Templates — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a href="index.html">Dashboard</a>
+          <a href="pipeline.html">Pipeline</a>
+          <a href="leads.html">Leads</a>
+          <a href="tasks.html">Tasks</a>
+          <a class="is-active" href="templates.html">Templates</a>
+          <a href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Templates</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+        <p style="color: var(--adm-muted); max-width: 52rem; line-height: 1.55">
+          Starter snippets for email/SMS. Replace placeholders manually or automate via Zapier reading <code>crm_payload_json</code> from FormSubmit-forwarded payloads.
+        </p>
+        <h2 style="margin-top: 1.25rem; font-size: 1rem">Email</h2>
+        <div class="adm-templates-grid">
+          <div class="adm-template-card">
+            <strong>Quote acknowledgment</strong>
+            <pre>
+Hi {{first_name}},
+
+Thanks for your quote from Rental Handyman.
+
+Projects: {{project_list}}
+Ballpark from builder: {{estimate_low}} – {{estimate_high}}
+
+Scheduling windows you picked: {{timeframe_preferences}}
+Emergency flag: {{is_emergency}}
+
+Next: we'll confirm scope (photos/on-site if needed), then lock arrival window + final rate.
+Weekend labor ×2 vs typical weekday band; holidays ×3; emergency dispatch premium may apply — we'll spell it out before work starts.
+
+— Rental Handyman</pre>
+          </div>
+          <div class="adm-template-card">
+            <strong>Missing windows follow-up</strong>
+            <pre>
+Hi {{first_name}},
+
+We received your repair list but no preferred time windows yet.
+Reply with blocks that usually work (e.g. weekday mornings 8–12, Sat AM).
+
+If this is urgent/emergency, say so — dispatch premium applies.
+
+— RH</pre>
+          </div>
+        </div>
+        <h2 style="margin-top: 1.25rem; font-size: 1rem">SMS</h2>
+        <div class="adm-templates-grid">
+          <div class="adm-template-card">
+            <strong>Quick reply</strong>
+            <pre>
+Got your quote ({{estimate_low}}-{{estimate_high}}). Projects: {{short_projects}}.
+We'll text back with timing options. Weekend×2 holiday×3 emergency premium if urgent.</pre>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/admin-auth.js"></script>
+    <script>
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+    </script>
+  </body>
+</html>

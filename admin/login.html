@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin login — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-login-wrap">
+      <h1>CRM login</h1>
+      <p style="color: var(--adm-muted); font-size: 0.88rem">
+        PIN is set in <code>admin/js/admin-config.js</code>. Session-only (browser tab).
+      </p>
+      <label>
+        PIN
+        <input id="adm-pin" type="password" autocomplete="current-password" />
+      </label>
+      <div id="adm-login-error" class="adm-login-error" aria-live="polite"></div>
+      <button type="button" class="adm-btn adm-btn-primary" style="margin-top: 1rem; width: 100%" id="adm-login-btn">
+        Sign in
+      </button>
+    </div>
+    <script src="js/admin-config.js"></script>
+    <script>
+      function login() {
+        var err = document.getElementById("adm-login-error");
+        err.textContent = "";
+        var pin = document.getElementById("adm-pin").value;
+        if (pin === window.RH_ADMIN_CONFIG.pin) {
+          sessionStorage.setItem("rh_admin_auth", "1");
+          window.location.href = "index.html";
+        } else {
+          err.textContent = "Incorrect PIN.";
+        }
+      }
+      document.getElementById("adm-login-btn").addEventListener("click", login);
+      document.getElementById("adm-pin").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") login();
+      });
+    </script>
+  </body>
+</html>

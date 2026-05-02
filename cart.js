@@ -403,25 +403,170 @@
     renderCatalog();
   }
 
-  function buildSummaryText() {
-    const t = totals();
-    const lines = [];
-    lines.push("Repair Quote Request");
-    lines.push("Type: " + (state.role === "pm" ? "Property Manager" : "Homeowner"));
-    lines.push("");
-    lines.push("ITEMS:");
+  function buildLineItemsDetailed() {
+    const rows = [];
     for (const id of Object.keys(state.items)) {
       const qty = state.items[id];
       const it = getItem(id);
-      if (!it) continue;
+      if (!it || qty < 1) continue;
+      rows.push({
+        id: it.id,
+        name: it.name,
+        qty,
+        category: it.category,
+        categoryLabel: window.CATEGORY_LABELS[it.category] || it.category,
+        unit: it.unit,
+        low: it.low,
+        high: it.high,
+        audience: it.audience,
+      });
+    }
+    return rows;
+  }
+
+  function readSchedulePrefs(form) {
+    return [...form.querySelectorAll('input[name="timeframe_pref"]:checked')].map((el) => el.value);
+  }
+
+  function validateSchedule(form) {
+    const prefs = readSchedulePrefs(form);
+    const emergency = form.querySelector("#cart-emergency") && form.querySelector("#cart-emergency").checked;
+    if (prefs.length === 0 && !emergency) {
+      alert("Choose at least one timeframe that usually works, or select Emergency / ASAP if this is urgent.");
+      return false;
+    }
+    if (emergency && prefs.length === 0) {
+      return confirm(
+        "No timeframe windows selected — only choose this path for true emergencies (hours-critical). Continue?"
+      );
+    }
+    return true;
+  }
+
+  function urgencyScore(isEmergency, prefs) {
+    let s = isEmergency ? 92 : 42;
+    if (prefs.some((p) => /Saturday|Sunday/i.test(p))) s += 8;
+    return Math.min(99, s);
+  }
+
+  function buildCrmPayload(form, t) {
+    const prefs = readSchedulePrefs(form);
+    const okWeekend = !!(form.querySelector("#cart-ok-weekend") && form.querySelector("#cart-ok-weekend").checked);
+    const okHoliday = !!(form.querySelector("#cart-ok-holiday") && form.querySelector("#cart-ok-holiday").checked);
+    const emergency = !!(form.querySelector("#cart-emergency") && form.querySelector("#cart-emergency").checked);
+    const uid =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : "lead_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
+
+    const nameEl = form.querySelector("#cart-name");
+    const emailEl = form.querySelector("#cart-email");
+    const phoneEl = form.querySelector("#cart-phone");
+    const addrEl = form.querySelector("#cart-address");
+
+    return {
+      schemaVersion: 1,
+      id: uid,
+      createdAt: new Date().toISOString(),
+      source: "quote_builder",
+      stage: "new_lead",
+      customerType: state.role === "pm" ? "Property Manager" : "Homeowner",
+      customerTypeRole: state.role,
+      contactName: (nameEl && nameEl.value.trim()) || "",
+      contactEmail: (emailEl && emailEl.value.trim()) || "",
+      contactPhone: (phoneEl && phoneEl.value.trim()) || "",
+      serviceAddress: (addrEl && addrEl.value.trim()) || "",
+      estimateLow: t.low,
+      estimateHigh: t.high,
+      lineItems: buildLineItemsDetailed(),
+      timeframePreferences: prefs,
+      okWeekendRates: okWeekend,
+      okHolidayRates: okHoliday,
+      isEmergency: emergency,
+      urgencyScore: urgencyScore(emergency, prefs),
+      pricingRules:
+        "Emergency: dispatch premium applies. Weekend Sat–Sun labor ×2 vs typical midweek estimate. Holidays ×3. Written confirmation before work.",
+      notesPreview: (form.querySelector("#cart-notes") && form.querySelector("#cart-notes").value) || "",
+      tasks: [],
+      emergencySeenOnDashboard: false,
+    };
+  }
+
+  function buildScheduleSummaryBlock(form, payload) {
+    const lines = [];
+    lines.push("SCHEDULING");
+    lines.push("Preferred windows: " + (payload.timeframePreferences.join("; ") || "(none listed)"));
+    lines.push("Emergency / ASAP: " + (payload.isEmergency ? "YES" : "no"));
+    lines.push("Weekend rate note (2×): " + (payload.okWeekendRates ? "Acknowledged" : "Not checked"));
+    lines.push("Holiday rate note (3×): " + (payload.okHolidayRates ? "Acknowledged" : "Not checked"));
+    lines.push("Urgency score (internal): " + payload.urgencyScore);
+    return lines.join("\n");
+  }
+
+  function buildSummaryText(form, payload, t) {
+    const lines = [];
+    lines.push("Repair Quote Request");
+    lines.push("Type: " + payload.customerType);
+    lines.push("");
+    lines.push("ITEMS:");
+    for (const row of payload.lineItems) {
       lines.push(
-        `- ${qty}x ${it.name} (${fmt(it.low * qty)}-${fmt(it.high * qty)})`
+        `- ${row.qty}x ${row.name} (${fmt(row.low * row.qty)}-${fmt(row.high * row.qty)})`
       );
     }
     lines.push("");
     lines.push(`Estimated total: ${fmt(t.low)} – ${fmt(t.high)}`);
+    lines.push("");
+    lines.push(buildScheduleSummaryBlock(form, payload));
+    lines.push("");
     lines.push("(Final pricing confirmed after on-site or photo review.)");
     return lines.join("\n");
+  }
+
+  function syncEmergencyHidden(form) {
+    const cb = form.querySelector("#cart-emergency");
+    const hid = form.querySelector("#hidden-is-emergency");
+    const pricingAck = form.querySelector("#hidden-pricing-ack");
+    if (hid && cb) hid.value = cb.checked ? "yes" : "no";
+    if (pricingAck && cb) {
+      const okW = form.querySelector("#cart-ok-weekend") && form.querySelector("#cart-ok-weekend").checked;
+      const okH = form.querySelector("#cart-ok-holiday") && form.querySelector("#cart-ok-holiday").checked;
+      const parts = [];
+      if (cb.checked) parts.push("emergency_dispatch");
+      if (okW) parts.push("weekend_2x_ack");
+      if (okH) parts.push("holiday_3x_ack");
+      pricingAck.value = parts.join("|") || "standard";
+    }
+  }
+
+  function syncTimeframeHidden(form) {
+    const hid = form.querySelector("#hidden-timeframes");
+    if (!hid) return;
+    hid.value = readSchedulePrefs(form).join(" | ");
+  }
+
+  async function maybePostWebhook(payload) {
+    const url = typeof window !== "undefined" && window.RH_QUOTE_WEBHOOK;
+    if (!url || typeof fetch !== "function") return;
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "handyman_quote", payload }),
+        mode: "cors",
+        keepalive: true,
+      });
+    } catch (e) {
+      console.warn("Quote webhook optional POST failed:", e);
+    }
+  }
+
+  function mirrorPayloadLocal(payload) {
+    try {
+      localStorage.setItem("rh_crm_last_quote_payload", JSON.stringify(payload));
+    } catch (e) {
+      /* ignore quota */
+    }
   }
 
   function openCart(open) {
@@ -524,23 +669,59 @@
 
     const form = document.getElementById("cart-form");
     if (form) {
-      form.addEventListener("submit", (ev) => {
+      form.addEventListener("change", (e) => {
+        if (
+          e.target &&
+          (e.target.id === "cart-emergency" ||
+            e.target.id === "cart-ok-weekend" ||
+            e.target.id === "cart-ok-holiday" ||
+            e.target.name === "timeframe_pref")
+        ) {
+          syncEmergencyHidden(form);
+          syncTimeframeHidden(form);
+        }
+      });
+
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
         const t = totals();
         if (t.count === 0) {
-          ev.preventDefault();
           alert("Add at least one repair to submit a quote.");
           return;
         }
-        document.getElementById("hidden-summary").value = buildSummaryText();
+        syncEmergencyHidden(form);
+        syncTimeframeHidden(form);
+        if (!validateSchedule(form)) {
+          return;
+        }
+
+        const payload = buildCrmPayload(form, t);
+
+        document.getElementById("hidden-summary").value = buildSummaryText(form, payload, t);
         document.getElementById("hidden-role").value =
           state.role === "pm" ? "Property Manager" : "Homeowner";
         document.getElementById("hidden-total-low").value = fmt(t.low);
         document.getElementById("hidden-total-high").value = fmt(t.high);
+
+        const lineEl = document.getElementById("hidden-line-items-json");
+        if (lineEl) lineEl.value = JSON.stringify(payload.lineItems);
+
+        const crmEl = document.getElementById("hidden-crm-payload");
+        if (crmEl) crmEl.value = JSON.stringify(payload);
+
+        const schedTa = document.getElementById("hidden-schedule-summary");
+        if (schedTa) schedTa.value = buildScheduleSummaryBlock(form, payload);
+
+        mirrorPayloadLocal(payload);
+        await maybePostWebhook(payload);
+
         const btn = form.querySelector('button[type="submit"]');
         if (btn) {
           btn.disabled = true;
           btn.textContent = "Submitting\u2026";
         }
+
+        HTMLFormElement.prototype.submit.call(form);
       });
     }
 

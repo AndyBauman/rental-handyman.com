@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Dashboard — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a class="is-active" href="index.html">Dashboard</a>
+          <a href="pipeline.html">Pipeline</a>
+          <a href="leads.html">Leads</a>
+          <a href="tasks.html">Tasks</a>
+          <a href="templates.html">Templates</a>
+          <a href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Dashboard</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn" id="adm-seed-demo">Load demo data</button>
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+
+        <div id="adm-emergency-banner" class="adm-emergency-banner" role="alert">
+          <div>
+            <strong>Emergency quote(s) need attention</strong>
+            <div style="font-size: 0.82rem; color: var(--adm-muted); margin-top: 0.25rem" id="adm-emergency-list"></div>
+          </div>
+          <button type="button" class="adm-btn" id="adm-mark-emergency-seen">Mark reviewed</button>
+        </div>
+
+        <div class="adm-grid-kpis" id="adm-kpis"></div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem">
+          <section class="adm-card">
+            <h2>Pipeline snapshot</h2>
+            <div id="adm-stage-chart"></div>
+          </section>
+          <section class="adm-card">
+            <h2>Top leads by urgency</h2>
+            <div id="adm-top-leads"></div>
+          </section>
+        </div>
+
+        <section class="adm-card">
+          <h2>Pricing reminders</h2>
+          <p style="margin: 0; font-size: 0.88rem; color: var(--adm-muted); line-height: 1.55">
+            Weekend Sat–Sun labor uses a <strong style="color: var(--adm-text)">×2</strong> multiplier vs typical midweek bands;
+            holidays <strong style="color: var(--adm-text)">×3</strong>. Emergency requests include an indicative dispatch premium in CRM projections.
+            Confirm written pricing before dispatch.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/admin-auth.js"></script>
+    <script src="js/crm-storage.js"></script>
+    <script src="js/pricing.js"></script>
+    <script>
+      function fmtMoney(n) {
+        if (n == null || isNaN(n)) return "—";
+        return (
+          "$" +
+          Number(n).toLocaleString(undefined, {
+            maximumFractionDigits: 0,
+          })
+        );
+      }
+
+      function stageLabel(s) {
+        var map = {
+          new_lead: "New lead",
+          contacted: "Contacted",
+          quoted: "Quoted",
+          scheduled: "Scheduled",
+          in_progress: "In progress",
+          completed: "Completed",
+          lost: "Lost",
+        };
+        return map[s] || s;
+      }
+
+      function render() {
+        var leads = RH_CRM.getLeads();
+        var emergencyUnread = leads.filter(function (l) {
+          return l.isEmergency && !l.emergencySeenOnDashboard;
+        });
+        var banner = document.getElementById("adm-emergency-banner");
+        var listEl = document.getElementById("adm-emergency-list");
+        if (emergencyUnread.length) {
+          banner.classList.add("is-visible");
+          listEl.innerHTML = emergencyUnread
+            .map(function (l) {
+              var name = l.contactName || "(No name yet)";
+              var addr = l.serviceAddress ? " · " + l.serviceAddress : "";
+              return "<div>• " + name + addr + " — " + fmtMoney(l.estimateLow) + "–" + fmtMoney(l.estimateHigh) + "</div>";
+            })
+            .join("");
+        } else {
+          banner.classList.remove("is-visible");
+        }
+
+        var hot = leads.filter(function (l) {
+          return l.isEmergency || (l.urgencyScore || 0) >= 80;
+        }).length;
+        var pipeLow = leads.reduce(function (a, l) {
+          return a + (Number(l.estimateLow) || 0);
+        }, 0);
+
+        document.getElementById("adm-kpis").innerHTML =
+          '<div class="adm-kpi"><div class="label">Active leads</div><div class="value">' +
+          leads.length +
+          '</div><div class="hint">In local CRM storage</div></div>' +
+          '<div class="adm-kpi"><div class="label">Emergency</div><div class="value">' +
+          emergencyUnread.length +
+          '</div><div class="hint">Unreviewed on dashboard</div></div>' +
+          '<div class="adm-kpi"><div class="label">Hot / urgent</div><div class="value">' +
+          hot +
+          '</div><div class="hint">Emergency or score ≥ 80</div></div>' +
+          '<div class="adm-kpi"><div class="label">Quote volume (low)</div><div class="value">' +
+          fmtMoney(pipeLow) +
+          '</div><div class="hint">Sum of estimate lows</div></div>';
+
+        var stages = {};
+        leads.forEach(function (l) {
+          var st = l.stage || "new_lead";
+          stages[st] = (stages[st] || 0) + 1;
+        });
+        var chart = document.getElementById("adm-stage-chart");
+        chart.innerHTML =
+          Object.keys(stages).length === 0
+            ? '<p style="color:var(--adm-muted);margin:0;">No leads yet — submit a quote or use Import.</p>'
+            : "<table class=\"adm-table\"><tbody>" +
+              Object.keys(stages)
+                .map(function (k) {
+                  return (
+                    "<tr><td>" +
+                    stageLabel(k) +
+                    "</td><td style=\"text-align:right;font-weight:800\">" +
+                    stages[k] +
+                    "</td></tr>"
+                  );
+                })
+                .join("") +
+              "</tbody></table>";
+
+        var top = leads
+          .slice()
+          .sort(function (a, b) {
+            return (b.urgencyScore || 0) - (a.urgencyScore || 0);
+          })
+          .slice(0, 5);
+        document.getElementById("adm-top-leads").innerHTML =
+          top.length === 0
+            ? '<p style="color:var(--adm-muted);margin:0;">No data.</p>'
+            : top
+                .map(function (l) {
+                  var proj =
+                    (l.lineItems || [])
+                      .slice(0, 2)
+                      .map(function (x) {
+                        return x.name;
+                      })
+                      .join(", ") || "—";
+                  var adj = RH_PRICING.adjustedRange(l.estimateLow, l.estimateHigh, {
+                    weekendScheduled: !!(l.okWeekendRates && /Saturday|Sunday/i.test((l.timeframePreferences || []).join(" "))),
+                    holidayScheduled: !!l.okHolidayRates,
+                    emergency: !!l.isEmergency,
+                  });
+                  return (
+                    '<div class="adm-pcard"><strong>' +
+                    (l.contactName || "Lead " + (l.id || "").slice(0, 8)) +
+                    '</strong><div class="meta">' +
+                    (l.serviceAddress || "No address") +
+                    "</div><div class=\"meta\">Projects: " +
+                    proj +
+                    '</div><div class="meta">Ballpark ' +
+                    fmtMoney(l.estimateLow) +
+                    "–" +
+                    fmtMoney(l.estimateHigh) +
+                    (adj.notes.length
+                      ? ' · <span style="color:var(--adm-warn)">' + adj.notes.join("; ") + "</span>"
+                      : "") +
+                    "</div></div>"
+                  );
+                })
+                .join("");
+      }
+
+      document.getElementById("adm-mark-emergency-seen").addEventListener("click", function () {
+        RH_CRM.markAllEmergencySeen();
+        render();
+      });
+
+      document.getElementById("adm-seed-demo").addEventListener("click", function () {
+        if (confirm("Add demo leads to local storage?")) {
+          RH_CRM.seedDemo();
+          render();
+        }
+      });
+
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+
+      render();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Import — Rental Handyman CRM</title>
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar">
+        <div class="adm-brand">
+          RH CRM
+          <span>Quotes & jobs</span>
+        </div>
+        <nav class="adm-nav">
+          <a href="index.html">Dashboard</a>
+          <a href="pipeline.html">Pipeline</a>
+          <a href="leads.html">Leads</a>
+          <a href="tasks.html">Tasks</a>
+          <a href="templates.html">Templates</a>
+          <a class="is-active" href="import.html">Import</a>
+        </nav>
+      </aside>
+      <main class="adm-main">
+        <div class="adm-topbar">
+          <h1>Import payload</h1>
+          <div class="adm-actions">
+            <button type="button" class="adm-btn adm-btn-danger" id="adm-logout">Log out</button>
+          </div>
+        </div>
+        <section class="adm-card adm-import">
+          <p style="margin: 0 0 0.75rem; color: var(--adm-muted); line-height: 1.55">
+            Paste one JSON object from <code>crm_payload_json</code> (same shape as quote builder hidden field), or an array of leads.
+            After submitting a quote on this device, use <strong>Load last quote from browser</strong> to pull
+            <code>rh_crm_last_quote_payload</code> from localStorage.
+          </p>
+          <textarea id="adm-import-json" spellcheck="false" placeholder="{ &quot;schemaVersion&quot;: 1, ... }"></textarea>
+          <div style="margin-top: 0.65rem; display: flex; flex-wrap: wrap; gap: 0.5rem">
+            <button type="button" class="adm-btn adm-btn-primary" id="adm-import-run">Import into CRM</button>
+            <button type="button" class="adm-btn" id="adm-import-last">Load last quote from browser</button>
+            <button type="button" class="adm-btn" id="adm-export-all">Export all leads (copy)</button>
+          </div>
+          <p id="adm-import-msg" style="margin-top: 0.65rem; font-size: 0.88rem"></p>
+        </section>
+      </main>
+    </div>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/crm-storage.js"></script>
+    <script>
+      function msg(text, ok) {
+        var el = document.getElementById("adm-import-msg");
+        el.textContent = text;
+        el.style.color = ok ? "var(--adm-success)" : "var(--adm-danger)";
+      }
+
+      document.getElementById("adm-import-run").addEventListener("click", function () {
+        var raw = document.getElementById("adm-import-json").value.trim();
+        if (!raw) {
+          msg("Paste JSON first.", false);
+          return;
+        }
+        try {
+          var n = RH_CRM.importPayload(raw);
+          msg("Imported " + n + " record(s). Open Dashboard or Leads.", true);
+        } catch (e) {
+          msg(String(e.message || e), false);
+        }
+      });
+
+      document.getElementById("adm-import-last").addEventListener("click", function () {
+        try {
+          var raw = localStorage.getItem("rh_crm_last_quote_payload");
+          if (!raw) {
+            msg("No rh_crm_last_quote_payload in localStorage — submit a quote from quote-builder on this browser first.", false);
+            return;
+          }
+          document.getElementById("adm-import-json").value = raw;
+          msg("Loaded last quote payload into the textarea.", true);
+        } catch (e) {
+          msg(String(e.message || e), false);
+        }
+      });
+
+      document.getElementById("adm-export-all").addEventListener("click", function () {
+        var txt = RH_CRM.exportJSON();
+        navigator.clipboard.writeText(txt).then(
+          function () {
+            msg("Copied " + JSON.parse(txt).length + " leads to clipboard.", true);
+          },
+          function () {
+            msg("Clipboard blocked — select textarea manually.", false);
+          }
+        );
+      });
+
+      document.getElementById("adm-logout").addEventListener("click", function () {
+        sessionStorage.removeItem("rh_admin_auth");
+        window.location.href = "login.html";
+      });
+    </script>
+  </body>
+</html>

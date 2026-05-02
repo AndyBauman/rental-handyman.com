@@ -1371,6 +1371,101 @@ body.cart-open {
   border-color: var(--primary);
 }
 
+.schedule-fieldset,
+.emergency-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  padding: 0.65rem 0.75rem 0.85rem;
+  margin: 0.85rem 0 0;
+  background: #fafbfc;
+}
+
+.schedule-fieldset legend,
+.emergency-fieldset legend {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 0.35rem;
+}
+
+.req-mark {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.fieldset-hint {
+  margin: 0 0 0.55rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.timeframe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.checkbox-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1.25;
+}
+
+.checkbox-tile input {
+  width: auto;
+  margin-top: 0.12rem;
+}
+
+.checkbox-tile .sub {
+  display: block;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.checkbox-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #334155;
+  margin-top: 0.45rem;
+  cursor: pointer;
+}
+
+.checkbox-line input {
+  width: auto;
+  margin-top: 0.15rem;
+}
+
+.fee-disclosure {
+  margin: 0.45rem 0 0;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.quote-email-schedule-block {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .payment-options {
   border: 0;
   padding: 0;
