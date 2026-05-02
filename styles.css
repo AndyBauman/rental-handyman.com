@@ -860,6 +860,8 @@ summary {
   font-weight: 700;
   color: var(--primary-dark);
 }
+
+.repair-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
@@ -885,12 +887,16 @@ summary {
   box-shadow: 0 0 0 1px var(--primary);
 }
 
-.repair-head {
+.repair-card.in-cart .repair-pricing {
+  background: rgba(14, 165, 233, 0.06);
+  border-color: rgba(14, 165, 233, 0.22);
+}
+
+.repair-card-body {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
 }
 
 .repair-cat {
@@ -902,11 +908,16 @@ summary {
   background: var(--ring);
   padding: 0.2rem 0.5rem;
   border-radius: 0.3rem;
+  align-self: flex-start;
+  margin-bottom: 0.45rem;
 }
 
-.repair-price-block {
-  text-align: right;
-  flex-shrink: 0;
+.repair-pricing {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
 }
 
 .repair-price-label {
@@ -914,12 +925,19 @@ summary {
   font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.repair-price-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
 }
 
 .repair-price {
-  display: block;
   font-weight: 800;
   font-size: 1.09rem;
   letter-spacing: -0.025em;
@@ -928,25 +946,25 @@ summary {
 }
 
 .repair-price-unit {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--muted);
 }
 
 .repair-card h3 {
-  margin: 0.35rem 0 0.35rem;
+  margin: 0 0 0.35rem;
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
 
-.repair-card p {
+.repair-card .repair-desc {
   color: var(--muted);
   font-size: 0.9rem;
   flex: 1;
-  margin: 0 0 0.8rem;
+  margin: 0;
+  line-height: 1.45;
 }
 
 .repair-actions {
@@ -954,6 +972,9 @@ summary {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
 }
 
 .btn-add {

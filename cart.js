@@ -260,16 +260,18 @@
         const desc = escapeHtml(it.desc);
         return `
           <article class="repair-card${inCart ? " in-cart" : ""}" data-id="${escapeHtml(it.id)}">
-            <div class="repair-head">
+            <div class="repair-card-body">
               <span class="repair-cat">${catLabel}</span>
-              <div class="repair-price-block">
-                <span class="repair-price-label">Typical range</span>
-                <span class="repair-price">${fmt(it.low)}–${fmt(it.high)}</span>
-                <span class="repair-price-unit">${escapeHtml(it.unit)}</span>
+              <h3>${title}</h3>
+              <p class="repair-desc">${desc}</p>
+              <div class="repair-pricing" role="group" aria-label="Estimated typical price range for this repair">
+                <span class="repair-price-label">Typical range · this job</span>
+                <div class="repair-price-line">
+                  <span class="repair-price">${fmt(it.low)}–${fmt(it.high)}</span>
+                  <span class="repair-price-unit">${escapeHtml(it.unit)}</span>
+                </div>
               </div>
             </div>
-            <h3>${title}</h3>
-            <p>${desc}</p>
             <div class="repair-actions">
               ${
                 inCart
