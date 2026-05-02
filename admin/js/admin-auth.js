@@ -1,23 +1,10 @@
 (function () {
-  var AUTH_KEY = "rh_admin_auth";
-
+  /** Access control is enforced by hosting (Basic Auth on /admin). Kept for compatibility. */
   window.RH_AdminAuth = {
     isOK: function () {
-      return sessionStorage.getItem(AUTH_KEY) === "1";
+      return true;
     },
-    setOK: function () {
-      sessionStorage.setItem(AUTH_KEY, "1");
-    },
-    clear: function () {
-      sessionStorage.removeItem(AUTH_KEY);
-    },
+    setOK: function () {},
+    clear: function () {},
   };
-
-  var path = window.location.pathname || "";
-  var file = (path.split("/").pop() || "").toLowerCase();
-  if (file === "login.html") return;
-
-  if (!window.RH_AdminAuth.isOK()) {
-    window.location.href = "login.html";
-  }
 })();
