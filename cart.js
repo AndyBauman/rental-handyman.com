@@ -116,33 +116,97 @@
     return role === "pm" && it.audience === "pm";
   }
 
+  /** Compact label for horizontal category pills (emoji stripped; shorten before em-dash). */
+  function categoryPillLabel(catKey, fullLabel) {
+    if (catKey === "all") return "All types";
+    let t = String(fullLabel || catKey).trim();
+    const parts = t.split(/\s+/);
+    if (parts.length > 1 && !/[a-zA-Z]/.test(parts[0])) {
+      t = parts.slice(1).join(" ");
+    }
+    const segment = t.split("—")[0].trim();
+    if (segment.length > 22) return segment.slice(0, 20) + "…";
+    return segment || t.slice(0, 22);
+  }
+
+  function syncCategoryTabsAria(activeCat) {
+    document.querySelectorAll("#catalog-cat-scroll .cat-pill").forEach((btn) => {
+      const on = btn.dataset.cat === activeCat;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+
+  const POPULAR_TERMS_HOMEOWNER = [
+    "faucet",
+    "toilet",
+    "drywall",
+    "paint",
+    "door",
+    "outlet",
+    "caulk",
+    "shelf",
+  ];
+  const POPULAR_TERMS_PM = [
+    "turnover",
+    "rekey",
+    "drywall",
+    "paint",
+    "smoke",
+    "gfci",
+    "carpet",
+    "lock",
+  ];
+
+  function renderPopularChips() {
+    const inner = document.getElementById("catalog-popular-chips");
+    if (!inner) return;
+    const terms = state.role === "pm" ? POPULAR_TERMS_PM : POPULAR_TERMS_HOMEOWNER;
+    inner.replaceChildren();
+    for (const term of terms) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "search-chip";
+      btn.dataset.searchChip = term;
+      btn.textContent = term.charAt(0).toUpperCase() + term.slice(1);
+      inner.appendChild(btn);
+    }
+  }
+
   function buildCategoryList() {
-    const ul = document.getElementById("catalog-cat-list");
+    const ul = document.getElementById("catalog-cat-scroll");
     if (!ul || !window.CATEGORY_LABELS) return;
     const order =
       state.role === "pm"
         ? window.CATEGORY_ORDER_PM || []
         : window.CATEGORY_ORDER_HOMEOWNER || [];
     ul.replaceChildren();
-    const allLi = document.createElement("li");
-    const allBtn = document.createElement("button");
-    allBtn.type = "button";
-    allBtn.className = "cat-btn";
-    allBtn.dataset.cat = "all";
-    allBtn.textContent =
-      state.role === "pm" ? "All PM job types" : "All homeowner job types";
-    allLi.appendChild(allBtn);
-    ul.appendChild(allLi);
-    for (const cat of order) {
+    const mkBtn = (catKey, labelFull, pillText) => {
       const li = document.createElement("li");
+      li.className = "cat-scroll-item";
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "cat-btn";
-      btn.dataset.cat = cat;
-      btn.textContent = window.CATEGORY_LABELS[cat] || cat;
+      btn.className = "cat-pill";
+      btn.dataset.cat = catKey;
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", catKey === state.activeCategory ? "true" : "false");
+      btn.title = labelFull;
+      btn.textContent = pillText;
       li.appendChild(btn);
-      ul.appendChild(li);
+      return li;
+    };
+    ul.appendChild(
+      mkBtn(
+        "all",
+        state.role === "pm" ? "All PM job types" : "All homeowner job types",
+        categoryPillLabel("all", "")
+      )
+    );
+    for (const cat of order) {
+      const full = window.CATEGORY_LABELS[cat] || cat;
+      ul.appendChild(mkBtn(cat, full, categoryPillLabel(cat, full)));
     }
+    syncCategoryTabsAria(state.activeCategory);
     const note = document.getElementById("catalog-role-note");
     if (note) {
       note.textContent =
@@ -150,6 +214,7 @@
           ? "Turnovers, compliance, portfolios — Portland/Vancouver market ranges."
           : "Owner-occupied scopes — Portland/Vancouver market ranges.";
     }
+    renderPopularChips();
   }
 
   function renderQuickStarts() {
@@ -218,9 +283,7 @@
 
   function setCategory(cat) {
     state.activeCategory = cat;
-    document.querySelectorAll(".builder-side [data-cat]").forEach((b) => {
-      b.classList.toggle("is-active", b.dataset.cat === cat);
-    });
+    syncCategoryTabsAria(cat);
     renderCatalog();
   }
 
@@ -230,6 +293,8 @@
     const grid = document.getElementById("catalog-grid");
     if (!grid) return;
     updateSearchChrome();
+    const popWrap = document.getElementById("catalog-popular-wrap");
+    if (popWrap) popWrap.hidden = state.search.trim().length > 0;
     const q = state.search.trim().toLowerCase();
     const items = window.REPAIR_CATALOG.filter((it) => {
       if (!itemMatchesRole(it, state.role)) return false;
@@ -639,9 +704,21 @@
         addBundle(ids);
         return;
       }
-      const catBtn = e.target.closest(".builder-side [data-cat]");
+      const catBtn = e.target.closest("#catalog-cat-scroll [data-cat]");
       if (catBtn) {
         setCategory(catBtn.dataset.cat);
+        return;
+      }
+      const chip = e.target.closest("[data-search-chip]");
+      if (chip && chip.closest(".catalog-popular-chips")) {
+        const term = chip.dataset.searchChip || "";
+        const input = document.getElementById("catalog-search");
+        setCategory("all");
+        state.search = term;
+        if (input) input.value = term;
+        updateSearchChrome();
+        renderCatalog();
+        input?.focus();
         return;
       }
       const addBtn = e.target.closest("[data-add]");

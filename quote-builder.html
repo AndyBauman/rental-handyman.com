@@ -69,25 +69,34 @@
 
     <section class="section builder-section">
       <div class="container builder-grid">
-        <aside class="builder-side" aria-label="Filters and categories">
-          <div class="builder-search-field-wrap">
-            <label for="catalog-search" class="builder-search-label">Search jobs</label>
-            <div class="builder-search-field">
-              <input id="catalog-search" type="search" placeholder="e.g. faucet, turnover, drywall…" autocomplete="off" enterkeyhint="search" />
-              <button type="button" id="catalog-search-clear" class="builder-search-clear" hidden aria-label="Clear search">Clear</button>
+        <div class="builder-main">
+          <div class="catalog-hero">
+            <div class="builder-search-field-wrap">
+              <label for="catalog-search" class="builder-search-label">Search repairs</label>
+              <div class="builder-search-field">
+                <span class="builder-search-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                </span>
+                <input id="catalog-search" type="search" placeholder="Search by job name or keyword — e.g. faucet, turnover, drywall" autocomplete="off" enterkeyhint="search" />
+                <button type="button" id="catalog-search-clear" class="builder-search-clear" hidden aria-label="Clear search">Clear</button>
+              </div>
+            </div>
+            <p id="catalog-role-note" class="catalog-role-note"></p>
+            <div id="catalog-popular-wrap" class="catalog-popular-wrap">
+              <span class="catalog-popular-label" id="catalog-popular-label">Popular</span>
+              <div id="catalog-popular-chips" class="catalog-popular-chips" role="group" aria-labelledby="catalog-popular-label"></div>
+            </div>
+            <div class="catalog-nav-wrap">
+              <div class="catalog-nav-head">
+                <p class="catalog-nav-title" id="catalog-nav-label">Categories</p>
+                <p class="catalog-nav-hint">Swipe sideways on phone</p>
+              </div>
+              <div class="catalog-nav-scroll-mask">
+                <ul class="cat-scroll-list" id="catalog-cat-scroll" role="tablist" aria-labelledby="catalog-nav-label"></ul>
+              </div>
             </div>
           </div>
-          <p class="side-heading">Categories</p>
-          <p id="catalog-role-note" class="catalog-role-note"></p>
-          <ul class="cat-list" id="catalog-cat-list"></ul>
 
-          <details class="rate-note-details">
-            <summary>About these rate ranges</summary>
-            <p>Figures are typical Clark County / Portland metro handyman ranges for 2026 — not a binding bid. Materials are usually customer-supplied unless noted. We put final pricing in writing after scope review.</p>
-          </details>
-        </aside>
-
-        <div class="builder-main">
           <header class="catalog-toolbar">
             <p id="catalog-results-count" class="catalog-results-count" aria-live="polite"></p>
           </header>
@@ -102,6 +111,13 @@
 
           <div id="catalog-grid" class="repair-grid" aria-live="polite"></div>
         </div>
+
+        <aside class="builder-side" aria-label="Quote builder resources">
+          <details class="rate-note-details">
+            <summary>About these rate ranges</summary>
+            <p>Figures are typical Clark County / Portland metro handyman ranges for 2026 — not a binding bid. Materials are usually customer-supplied unless noted. We put final pricing in writing after scope review.</p>
+          </details>
+        </aside>
       </div>
     </section>
 
