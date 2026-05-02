@@ -78,7 +78,7 @@
 
   function getItem(id) {
     const i = window.REPAIR_CATALOG.find((x) => x.id === id);
-    if (!i || i.audience !== state.role) return undefined;
+    if (!i || !itemMatchesRole(i, state.role)) return undefined;
     return i;
   }
 
@@ -86,7 +86,7 @@
     let changed = false;
     for (const id of Object.keys(state.items)) {
       const it = window.REPAIR_CATALOG.find((x) => x.id === id);
-      if (!it || it.audience !== state.role) {
+      if (!it || !itemMatchesRole(it, state.role)) {
         delete state.items[id];
         changed = true;
       }
@@ -105,6 +105,15 @@
       count += qty;
     }
     return { low, high, count };
+  }
+
+  /** Homeowner mode never surfaces PM-only categories (turnovers, portfolio jobs, etc.). */
+  function itemMatchesRole(it, role) {
+    if (!it || typeof it.audience !== "string") return false;
+    if (role === "homeowner") {
+      return it.audience === "homeowner" && !String(it.category || "").startsWith("pm_");
+    }
+    return role === "pm" && it.audience === "pm";
   }
 
   function buildCategoryList() {
@@ -223,7 +232,7 @@
     updateSearchChrome();
     const q = state.search.trim().toLowerCase();
     const items = window.REPAIR_CATALOG.filter((it) => {
-      if (it.audience !== state.role) return false;
+      if (!itemMatchesRole(it, state.role)) return false;
       if (state.activeCategory !== "all" && it.category !== state.activeCategory) return false;
       if (q && !(it.name.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q))) return false;
       return true;
@@ -348,7 +357,7 @@
       const id = raw.trim();
       if (!id) continue;
       const it = window.REPAIR_CATALOG.find((x) => x.id === id);
-      if (!it || it.audience !== state.role) continue;
+      if (!it || !itemMatchesRole(it, state.role)) continue;
       state.items[id] = (state.items[id] || 0) + 1;
       added++;
     }

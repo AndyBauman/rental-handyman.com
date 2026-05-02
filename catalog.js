@@ -228,7 +228,7 @@ window.REPAIR_CATALOG = [
 
   // ========== HOMEOWNER: CLEANING & MAINTENANCE ==========
   { id: "cl-deep", audience: "homeowner", category: "cleaning_maintenance", name: "Deep cleaning coordination", desc: "Partner cleaner referral & keys.", low: 225, high: 450, unit: "visit" },
-  { id: "cl-move", audience: "homeowner", category: "cleaning_maintenance", name: "Move-out cleaning coordination", desc: "Whole-home turnover clean vendor.", low: 275, high: 550, unit: "home" },
+  { id: "cl-move", audience: "homeowner", category: "cleaning_maintenance", name: "Move-out cleaning coordination", desc: "Whole-home deep clean via vetted vendor coordination.", low: 275, high: 550, unit: "home" },
   { id: "cl-junk", audience: "homeowner", category: "cleaning_maintenance", name: "Junk / debris hauling assist", desc: "Bag & curb load — disposal fees extra.", low: 175, high: 450, unit: "load" },
   { id: "cl-garage", audience: "homeowner", category: "cleaning_maintenance", name: "Garage cleanout / organize", desc: "Labor to sort & haul away coordination.", low: 275, high: 750, unit: "bay" },
 
