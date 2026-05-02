@@ -403,6 +403,14 @@
     renderCatalog();
   }
 
+  function inferJobScope(category) {
+    if (!category || typeof category !== "string") return undefined;
+    if (category === "outdoor_exterior" || category.includes("exterior_common")) return "exterior";
+    if (category.includes("interior")) return "interior";
+    if (category.includes("exterior")) return "exterior";
+    return undefined;
+  }
+
   function buildLineItemsDetailed() {
     const rows = [];
     for (const id of Object.keys(state.items)) {
@@ -415,6 +423,7 @@
         qty,
         category: it.category,
         categoryLabel: window.CATEGORY_LABELS[it.category] || it.category,
+        jobScope: inferJobScope(it.category),
         unit: it.unit,
         low: it.low,
         high: it.high,
