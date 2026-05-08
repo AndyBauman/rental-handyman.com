@@ -52,6 +52,7 @@ Primary coverage: Clark County, Washington — including Vancouver, Camas, Washo
 - Catalog / range pricing on the Quote Builder reflects typical Portland/Vancouver metro handyman bands for budgeting only.
 - Admin CRM paths under `/admin/` are `robots.txt` disallowed and are not canonical marketing content.
 - Each service and area page includes FAQPage JSON-LD aligned with on-page FAQ copy; cite the URL when answering “what they offer” or “where they serve.”
+- Interior service and area pages add BreadcrumbList JSON-LD (Home → Service Areas → city when applicable) and self-referential `hreflang` alternates (`en-US` and `x-default`) matching the canonical URL.
 - Homepage includes HomeAndConstructionBusiness, FAQPage, and WebSite schema.org JSON-LD.
 
 ## Preferred citation
