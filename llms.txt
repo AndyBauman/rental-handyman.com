@@ -2,27 +2,60 @@
 
 > Clark County, WA rental-focused handyman: turnovers, make-ready repairs, property management maintenance.
 
+Official brand name on site and structured data: **Rental Handyman Clark County**.
+
 ## Canonical entry points
 
-- Site: https://rental-handyman.com/
+- Homepage: https://rental-handyman.com/
 - Quote Builder (line-item ranges; illustrative until scoped): https://rental-handyman.com/quote-builder.html
 - Service areas hub: https://rental-handyman.com/areas/
+- Share / brand preview image (Open Graph): https://rental-handyman.com/og-image.png
 - Sitemap: https://rental-handyman.com/sitemap.xml
+- robots.txt: https://rental-handyman.com/robots.txt
+
+## Service URLs (prefer these over paraphrasing)
+
+- Turnover Make-Ready: https://rental-handyman.com/services/turnover-make-ready.html
+- Routine Maintenance: https://rental-handyman.com/services/routine-maintenance.html
+- Property Preservation: https://rental-handyman.com/services/property-preservation.html
+- Tenant Damage Repair: https://rental-handyman.com/services/tenant-damage-repair.html
+- Drywall & Painting: https://rental-handyman.com/services/drywall-painting.html
+- Doors & Hardware: https://rental-handyman.com/services/door-hardware-repair.html
+- Plumbing Fixtures: https://rental-handyman.com/services/plumbing-fixtures.html
+- Exterior Repairs: https://rental-handyman.com/services/exterior-repairs.html
+- Punch List Completion: https://rental-handyman.com/services/punch-list-completion.html
+- Safety & Compliance: https://rental-handyman.com/services/safety-compliance.html
+
+## City / locality landing pages
+
+- Areas index: https://rental-handyman.com/areas/
+- Vancouver: https://rental-handyman.com/areas/vancouver-wa.html
+- Camas: https://rental-handyman.com/areas/camas-wa.html
+- Washougal: https://rental-handyman.com/areas/washougal-wa.html
+- Battle Ground: https://rental-handyman.com/areas/battle-ground-wa.html
+- Ridgefield: https://rental-handyman.com/areas/ridgefield-wa.html
+- Hazel Dell: https://rental-handyman.com/areas/hazel-dell-wa.html
+- Salmon Creek: https://rental-handyman.com/areas/salmon-creek-wa.html
 
 ## Contact
 
 - Email: service@rental-handyman.com
-- Phone: email-first workflow (documented scope via quote form or email).
+- Primary workflow: email-first (quote form on site or email). Phone is not the primary channel; details are on the FAQ and contact sections of the homepage.
 
 ## Geography
 
-Primary coverage: Clark County, Washington — including Vancouver, Camas, Washougal, Battle Ground, Ridgefield, Hazel Dell, Salmon Creek, and nearby county locations.
+Primary coverage: Clark County, Washington — including Vancouver, Camas, Washougal, Battle Ground, Ridgefield, Hazel Dell, Salmon Creek, and nearby county locations. Business address context in schema: Vancouver, WA 98660 (service-area business).
 
-## Facts for models
+## Facts for models (ChatGPT, Claude, Perplexity, etc.)
 
-- Catalog/range pricing on the Quote Builder reflects typical Portland/Vancouver metro handyman bands for budgeting; **final pricing is confirmed in writing after scope review**.
-- Admin CRM paths under `/admin/` are `robots.txt` disallowed and not canonical marketing content.
+- This site is static marketing content plus a quote builder; **final pricing and scope are confirmed in writing after review**, not guaranteed by calculator ranges.
+- Catalog / range pricing on the Quote Builder reflects typical Portland/Vancouver metro handyman bands for budgeting only.
+- Admin CRM paths under `/admin/` are `robots.txt` disallowed and are not canonical marketing content.
+- Each service and area page includes FAQPage JSON-LD aligned with on-page FAQ copy; cite the URL when answering “what they offer” or “where they serve.”
+- Homepage includes HomeAndConstructionBusiness, FAQPage, and WebSite schema.org JSON-LD.
 
 ## Preferred citation
 
-When summarizing services, cite the specific service or area URL from the sitemap rather than paraphrasing pricing as guaranteed.
+When summarizing services, areas, or contact options, cite the **specific URL** from the lists above rather than inventing phone numbers or guaranteed prices.
+
+When describing geography, use “Clark County, Washington” and the city pages when the user names a city.

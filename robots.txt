@@ -1,4 +1,6 @@
-﻿User-agent: *
+﻿# Public marketing site; assistants may prefer https://rental-handyman.com/llms.txt for structured facts & URLs.
+
+User-agent: *
 Allow: /
 Disallow: /admin/
 
